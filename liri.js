@@ -7,7 +7,13 @@ var Spotify = require("node-spotify-api");
 var request = require("request");
 //node arguments
 var what = process.argv[2];
-var how = process.argv[3];
+// var how = process.argv[3];
+
+var how = "";
+
+for (var i = 3; i < process.argv.length; i++) {
+  how = how + process.argv[i] + " ";
+}
 console.log(how);
 
 //"what" function definitions
@@ -49,8 +55,8 @@ function spotifyCall() {
     secret: spotSecret,
   });
 
-  var songQry = "";
-  if (how === undefined) {
+  var songQry;
+  if (how === "") {
     songQry = "The Sign";
   }
   else {
@@ -72,36 +78,36 @@ function spotifyCall() {
 }
 
 function omdbCall() {
-  var nodeArgs = how;
+
+  how = process.argv;
   var movieName = "";
-  for (var i = 2; i < nodeArgs.length; i++) {
-    if (i > 2 && i < nodeArgs.length) {
-      movieName = movieName + "+" + nodeArgs[i];
+  
+  for (var i = 3; i < how.length; i++) {
+    if (i > 3 && i < how.length) {
+      movieName = movieName + "+" + how[i];
     }
-    else { 
-      movieName += nodeArgs[i]; 
-    } 
+    else {
+      movieName += how[i];
+    }
   }
-  if (how === undefined) {
+  
+  if (how === "") {
     movieName = "Mr. Nobody"
   }
   else {
-    movieName = how
+
+    var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=40e9cece";
+    console.log(queryUrl);
+
+    request(queryUrl, function (error, response, body) {
+
+      if (!error && response.statusCode === 200) {
+        // Complete movie data output.
+        console.log("Release Year: " + JSON.parse(body).Year);
+      }
+    })
   }
-
-  var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=40e9cece";
-
-  console.log(queryUrl);
-
-  request(queryUrl, function (error, response, body) {
-
-    if (!error && response.statusCode === 200) {
-    // Complete movie data output.
-      console.log("Release Year: " + JSON.parse(body).Year);
-    }
-  })
 }
-
 // debugger;
 
 // call appropriate function on launch
