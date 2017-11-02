@@ -5,19 +5,18 @@ var callSpotify = require("./spotKeys.js")
 var Twitter = require("twitter");
 var Spotify = require("node-spotify-api");
 var request = require("request");
+//file system
+var fs = require("fs");
 //node arguments
 var what = process.argv[2];
 // var how = process.argv[3];
 
 var how = "";
+var movieName = "";
 
 for (var i = 3; i < process.argv.length; i++) {
   how = how + process.argv[i] + " ";
-}
-console.log(how);
-
-//"what" function definitions
-
+}//"what" function definitions
 function twitterCall() {
 
   ckey = callTwitter.consumer_key;
@@ -77,41 +76,61 @@ function spotifyCall() {
   )
 }
 
-function omdbCall() {
+function qryUrl() {
 
-  how = process.argv;
-  var movieName = "";
-  
-  for (var i = 3; i < how.length; i++) {
-    if (i > 3 && i < how.length) {
-      movieName = movieName + "+" + how[i];
+  var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=40e9cece";
+  request(queryUrl, function (error, response, body) {
+
+    if (!error && response.statusCode === 200) {
+      // Complete movie data output.
+      console.log("Title: " + JSON.parse(body).Title);
+      console.log("Year: " + JSON.parse(body).Year);
+      console.log("Rated: " + JSON.parse(body).Rated);
+      console.log("IMDB: " + JSON.parse(body).imdbRating);
+      console.log("Country: " + JSON.parse(body).Country);
+      console.log("Language: " + JSON.parse(body).Language);
+      console.log("Plot: " + JSON.parse(body).Plot);
+      console.log("Actors: " + JSON.parse(body).Actors);
+      console.log("Rotton Tomatoes: " + JSON.parse(body).tomatoURL);
     }
-    else {
-      movieName += how[i];
-    }
-  }
-  
+  });
+};
+
+function omdbCall() {
   if (how === "") {
-    movieName = "Mr. Nobody"
+    movieName = "Mr. Nobody";
   }
   else {
-
-    var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=40e9cece";
-    console.log(queryUrl);
-
-    request(queryUrl, function (error, response, body) {
-
-      if (!error && response.statusCode === 200) {
-        // Complete movie data output.
-        console.log("Release Year: " + JSON.parse(body).Year);
+    //reformat last argument with "+" between words in movie title
+    how = process.argv;
+    for (var i = 3; i < how.length; i++) {
+      if (i > 3 && i < how.length) {
+        movieName = movieName + "+" + how[i];
       }
-    })
+      else {
+        movieName += how[i];
+      }
+    }
   }
+  console.log("Movie: " + movieName);
+  qryUrl();
 }
 // debugger;
 
-// call appropriate function on launch
-// fix functionality so that the second argument takes in multiple spaced words.
+var doIt = function () {
+  fs.readFile("random.txt", "utf8", function (error, data) {
+    console.log(data);
+
+    var dataArr = data.split(",");
+
+    if (dataArr.length === 2) {
+      pick(dataArr[0], dataArr[1]);
+    }
+    else if (dataArr.length === 1) {
+      pick(dataArr[0]);
+    }
+  });
+};
 
 switch (what) {
   case "my-tweets":
@@ -124,8 +143,6 @@ switch (what) {
     omdbCall();
     break;
   case "do-what-it-says":
-    // declare doIt function
-    // doIt();
+    doIt();
     break;
 }
-
